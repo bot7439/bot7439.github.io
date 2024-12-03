@@ -1,182 +1,77 @@
-<!doctype html>
-<html itemscope="" itemtype="http://schema.org/SearchResultsPage" lang="es"><head><meta charset="UTF-8"><meta content="origin" name="referrer"><meta content="/images/branding/googleg/1x/googleg_standard_color_128dp.png" itemprop="image"><title>ies clara campoamor - Buscar con Google</title><script nonce="5Sh_MI5CKuKXhzMrzLY7dw">window._hst=Date.now();</script><script nonce="5Sh_MI5CKuKXhzMrzLY7dw">(function(){var b=window.addEventListener;window.addEventListener=function(a,c,d){a!=="unload"&&b(a,c,d)};}).call(this);(function(){var _g={kEI:'Ts9OZ5rUK7GmkdUPpr-1oQo',kEXPI:'31',kBL:'YYC8',kOPI:89978449};(function(){var a;((a=window.google)==null?0:a.stvsc)?google.kEI=_g.kEI:window.google=_g;}).call(this);})();(function(){google.sn='web';google.kHL='es';})();(function<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Humor Negativo - Lo Peor de Lo Peor</title>
+    <title>Humor Irónico y Reflexiones</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>Humor Negativo: Lo Peor de Lo Peor</h1>
+        <h1>Bienvenido al Mundo del Humor Irónico</h1>
         <nav>
             <ul>
-                <li><a href="#home">Inicio</a></li>
-                <li><a href="#dark-jokes">Chistes Oscuros</a></li>
-                <li><a href="#about">Acerca de</a></li>
-                <li><a href="#contact">Contacto</a></li>
+                <li><a href="#chistes">Chistes Irónicos</a></li>
+                <li><a href="#sobre">¿Por qué nos gusta el humor irónico?</a></li>
+                <li><a href="#reflexiones">Reflexiones Irónicas</a></li>
+                <li><a href="#diversion">Diversión Aleatoria</a></li>
+                <li><a href="#chistesfavoritos">Chistes Favoritos</a></li>
+                <li><a href="#contacto">Contacto</a></li>
             </ul>
         </nav>
     </header>
 
-    <section id="home">
-        <h2>Bienvenidos al abismo</h2>
-        <p>Aquí encontrarás lo peor de la comedia, chistes que probablemente te hagan cuestionar la moralidad de tus decisiones. No es para todo el mundo, pero si estás aquí, ya sabemos que algo no va bien en tu vida.</p>
+    <section id="chistes">
+        <h2>Chistes Irónicos</h2>
+        <p class="chiste" id="chiste1">"Si la vida te da limones, haz limonada. Pero ¿por qué no recibir limones de nuevo?"</p>
+        <p class="chiste" id="chiste2">"Dicen que la risa es el mejor remedio, pero nadie me avisa si también cura la procrastinación."</p>
+        <button onclick="mostrarChiste()">¡Otro chiste!</button>
     </section>
 
-    <section id="dark-jokes">
-        <h2>Chistes Oscuros</h2>
+    <section id="sobre">
+        <h2>¿Por qué nos gusta el humor irónico?</h2>
+        <p>El humor irónico ofrece una visión única de lo absurdo y lo contradictorio. Nos ayuda a lidiar con la complejidad de la vida cotidiana, mientras mantiene el sarcasmo y la burla como herramientas de análisis. La ironía crea un contraste entre lo esperado y lo que realmente ocurre, haciendo que nuestras percepciones sobre ciertas situaciones cambien.</p>
+        <p>Además, la ironía a menudo refleja una crítica social disfrazada de humor, lo que la hace aún más atractiva.</p>
+    </section>
+
+    <section id="reflexiones">
+        <h2>Reflexiones Irónicas</h2>
+        <p>“La vida es demasiado corta para tomársela en serio. ¿Y si le damos un giro irónico?”</p>
+        <p>“A veces las mejores decisiones son las que no tomamos... y lo digo porque nunca tomé la decisión de hacer ejercicio.”</p>
+        <p>“Si el café es la respuesta, ¿cuál es la pregunta? De todos modos, no me importa, porque tengo café.”</p>
+    </section>
+
+    <section id="diversion">
+        <h2>Diversión Aleatoria</h2>
+        <button onclick="generarComentario()">Generar un Comentario Irónico</button>
+        <p id="comentarioGenerado"></p>
+    </section>
+
+    <section id="chistesfavoritos">
+        <h2>Mis Chistes Favoritos</h2>
         <ul>
-            <li>¿Por qué los fantasmas no van al gimnasio? Porque ya están muertos de miedo.</li>
-            <li>¿Cómo llamas a un niño en un sótano? Lo llamas, pero nunca responde.</li>
-            <li>La vida es como una caja de chocolates, la diferencia es que algunas están llenas de veneno.</li>
-            <li>La única cosa que me mantiene en pie es la gravedad... y mis expectativas en la vida.</li>
+            <li>“El trabajo en equipo es esencial. Te permite echarle la culpa a los demás.”</li>
+            <li>“No soy perezoso, simplemente estoy en modo ahorro de energía.”</li>
+            <li>“La procrastinación es la clave del éxito... si es que alguna vez llegamos a hacerlo.”</li>
         </ul>
-        <p>Recuerda: el humor es subjetivo, pero lo nuestro es muy subjetivo.</p>
     </section>
 
-    <section id="about">
-        <h2>Acerca de este sitio</h2>
-        <p>Este sitio fue creado por un colectivo de personas que han perdido la fe en todo y decidieron canalizar esa desesperación en algo “productivo”. Si sientes que te estás riendo de algo terrible, no te preocupes, probablemente sea solo un reflejo de tu alma rota.</p>
-    </section>
-
-    <section id="contact">
+    <section id="contacto">
         <h2>Contacto</h2>
-        <p>¿Quieres enviar un chiste más oscuro? ¿O simplemente quieres llorar con nosotros? Envíanos un mensaje.</p>
-        <form id="contact-form">
-            <label for="name">Tu Nombre:</label>
-            <input type="text" id="name" name="name" required><br><br>
-            <label for="email">Tu Correo Electrónico:</label>
-            <input type="email" id="email" name="email" required><br><br>
-            <label for="message">Tu Mensaje:</label>
-            <textarea id="message" name="message" rows="4" required></textarea><br><br>
+        <p>¿Tienes algún comentario o sugerencia irónica? ¡Déjanos tu mensaje!</p>
+        <form>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre">
+            <label for="mensaje">Mensaje:</label>
+            <textarea id="mensaje" name="mensaje"></textarea>
             <button type="submit">Enviar</button>
         </form>
     </section>
 
     <footer>
-        <p>&copy; 2024 Humor Negativo. Todos los derechos reservados (aunque no sabríamos qué hacer con ellos).</p>
+        <p>© 2024 Humor Irónico. Todos los derechos reservados.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="scripts.js"></script>
 </body>
 </html>
-
-Código CSS (styles.css)
-
-/* Estilo básico para el fondo */
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #333;
-    color: #ddd;
-}
-
-/* Estilo del encabezado */
-header {
-    background-color: #222;
-    color: white;
-    padding: 20px 0;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-}
-
-header h1 {
-    margin: 0;
-    font-size: 2.5em;
-}
-
-nav ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 10px;
-}
-
-nav ul li {
-    display: inline;
-    margin-right: 20px;
-}
-
-nav ul li a {
-    color: white;
-    text-decoration: none;
-    font-size: 1.2em;
-}
-
-nav ul li a:hover {
-    text-decoration: underline;
-}
-
-/* Estilo de las secciones */
-section {
-    padding: 20px;
-    margin: 20px;
-    background-color: #444;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-section h2 {
-    color: #f2f2f2;
-}
-
-section p {
-    color: #ccc;
-}
-
-/* Estilo de la lista de chistes */
-#dark-jokes ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-#dark-jokes ul li {
-    margin: 10px 0;
-    font-size: 1.2em;
-    color: #fff;
-}
-
-/* Formulario de contacto */
-form {
-    background-color: #555;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
-}
-
-form label {
-    color: #ddd;
-}
-
-form input, form textarea {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #888;
-    border-radius: 5px;
-}
-
-form button {
-    padding: 10px;
-    background-color: #222;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-form button:hover {
-    background-color: #444;
-}
-
-/* Estilo del pie de página */
-footer {
-    text-align: center;
-    padding: 10px;
-    background-color: #222;
-    color: white;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
