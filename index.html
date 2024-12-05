@@ -81,6 +81,24 @@
       background-color: purple;
       width: 0;
     }
+
+    #card-bar {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .card {
+      width: 80px;
+      height: 100px;
+      background-color: #FFA500;
+      margin: 0 5px;
+      text-align: center;
+      line-height: 100px;
+      font-weight: bold;
+      border: 2px solid white;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -99,11 +117,18 @@
     <div class="tower bot-tower main-tower" style="left: 370px;">M</div>
     <div class="tower bot-tower" style="left: 560px;">2</div>
   </div>
+  <div id="card-bar">
+    <div class="card" data-type="basic">Basic</div>
+    <div class="card" data-type="fast">Fast</div>
+    <div class="card" data-type="tank">Tank</div>
+  </div>
 
   <script>
     const gameBoard = document.getElementById('game-board');
     const elixirBar = document.getElementById('elixir-fill');
+    const cards = document.querySelectorAll('.card');
     let elixir = 0;
+    let selectedCard = 'basic';
 
     const playerTowers = [
       { x: 180, y: 540, health: 100 },
@@ -119,27 +144,42 @@
 
     const troops = []; // To track all moving troops
 
-    function spawnTroop(x, y, type) {
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        selectedCard = card.dataset.type;
+      });
+    });
+
+    function spawnTroop(x, y, type, cardType) {
       const troop = document.createElement('div');
       troop.className = `troop ${type === 'bot' ? 'bot-troop' : ''}`;
       troop.style.left = `${x}px`;
       troop.style.top = `${y}px`;
-      troop.health = 50;
-      troop.speed = type === 'bot' ? -1 : 1;
-      troop.type = type;
 
+      if (cardType === 'basic') {
+        troop.health = 50;
+        troop.speed = type === 'bot' ? 1 : -1;
+      } else if (cardType === 'fast') {
+        troop.health = 30;
+        troop.speed = type === 'bot' ? 2 : -2;
+      } else if (cardType === 'tank') {
+        troop.health = 100;
+        troop.speed = type === 'bot' ? 0.5 : -0.5;
+      }
+
+      troop.type = type;
       gameBoard.appendChild(troop);
       troops.push(troop);
     }
 
     function updateTroops() {
       troops.forEach((troop, index) => {
-        let currentY = parseInt(troop.style.top);
+        let currentY = parseFloat(troop.style.top);
         troop.style.top = `${currentY + troop.speed}px`;
 
         // Check collision with towers
         const towers = troop.type === 'bot' ? playerTowers : botTowers;
-        towers.forEach((tower) => {
+        towers.forEach(tower => {
           if (
             Math.abs(tower.x - parseInt(troop.style.left)) < 50 &&
             Math.abs(tower.y - parseInt(troop.style.top)) < 50
@@ -172,16 +212,16 @@
 
       // Bot logic: Spawn a troop every 3 seconds
       if (Math.random() < 0.01) {
-        spawnTroop(370, 10, 'bot');
+        spawnTroop(370, 10, 'bot', 'basic');
       }
 
       requestAnimationFrame(gameLoop);
     }
 
-    // Player can spawn troops with clicks
+    // Player spawns troops by clicking on the game board
     gameBoard.addEventListener('click', (e) => {
       if (elixir >= 1) {
-        spawnTroop(e.clientX - gameBoard.offsetLeft, 550, 'player');
+        spawnTroop(e.clientX - gameBoard.offsetLeft, 550, 'player', selectedCard);
         elixir -= 1;
       }
     });
@@ -190,4 +230,3 @@
   </script>
 </body>
 </html>
-
