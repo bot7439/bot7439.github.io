@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atrapa el Cuadrado</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f3f3;
+    }
+    #game-area {
+      position: relative;
+      margin: 20px auto;
+      width: 400px;
+      height: 400px;
+      background-color: #e0e0e0;
+      border: 2px solid #333;
+      overflow: hidden;
+    }
+    .square {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-color: #ff5733;
+      cursor: pointer;
+    }
+    #score {
+      margin-top: 20px;
+      font-size: 24px;
+      color: #333;
+    }
+    #start-btn {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 10px;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #start-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Atrapa el Cuadrado</h1>
+  <div id="game-area"></div>
+  <div id="score">Puntaje: 0</div>
+  <button id="start-btn">Iniciar Juego</button>
+
+  <script>
+    const gameArea = document.getElementById('game-area');
+    const scoreDisplay = document.getElementById('score');
+    const startBtn = document.getElementById('start-btn');
+    let score = 0;
+    let gameInterval;
+
+    function getRandomPosition() {
+      const x = Math.floor(Math.random() * (gameArea.clientWidth - 50));
+      const y = Math.floor(Math.random() * (gameArea.clientHeight - 50));
+      return { x, y };
+    }
+
+    function createSquare() {
+      const square = document.createElement('div');
+      square.classList.add('square');
+      const { x, y } = getRandomPosition();
+      square.style.left = `${x}px`;
+      square.style.top = `${y}px`;
+
+      square.addEventListener('click', () => {
+        score++;
+        scoreDisplay.textContent = `Puntaje: ${score}`;
+        gameArea.removeChild(square);
+      });
+
+      gameArea.appendChild(square);
+
+      setTimeout(() => {
+        if (gameArea.contains(square)) {
+          gameArea.removeChild(square);
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      score = 0;
+      scoreDisplay.textContent = `Puntaje: ${score}`;
+      startBtn.disabled = true;
+
+      gameInterval = setInterval(() => {
+        createSquare();
+      }, 800);
+
+      setTimeout(() => {
+        clearInterval(gameInterval);
+        startBtn.disabled = false;
+        alert(`¡Fin del juego! Puntaje final: ${score}`);
+      }, 30000); // Juego de 30 segundos
+    }
+
+    startBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
