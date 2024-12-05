@@ -211,11 +211,11 @@
     }
 
     function spawnBotTroop() {
-      if (botElixir >= 1 && botTroopsCount < troopLimits.bot) {
+      if (botElixir >= 10 && botTroopsCount < troopLimits.bot) {
         const x = 370;
         const y = 50;
         spawnTroop(x, y, 'bot', 'basic');
-        botElixir -= 1;
+        botElixir -= 10;
       }
     }
 
@@ -244,6 +244,8 @@
           // Damage main tower if troop reaches the opponent's tower
           damageTower(targetTower, troop.data.attack);
           troop.remove();
+          if (enemy === 'player') playerTroopsCount--;
+          if (enemy === 'bot') botTroopsCount--;
         }
       });
     }
@@ -251,9 +253,8 @@
     function gameLoop() {
       if (gameOver) return;
 
-      elixir = Math.min(elixir + 0.1, 100); 
+      elixir = Math.min(elixir + 0.1, 100);
       botElixir = Math.min(botElixir + 0.1, 100);
-
       elixirBar.style.width = `${elixir}%`;
 
       spawnBotTroop();
