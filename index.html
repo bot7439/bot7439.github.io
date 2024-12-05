@@ -51,6 +51,21 @@
       line-height: 80px;
     }
 
+    .health-bar {
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background-color: red;
+    }
+
+    .health-bar-fill {
+      width: 100%;
+      height: 100%;
+      background-color: green;
+    }
+
     .troop {
       position: absolute;
       width: 40px;
@@ -108,14 +123,26 @@
   </div>
   <div id="game-board">
     <!-- Player Towers -->
-    <div class="tower player-tower" style="left: 180px;">1</div>
-    <div class="tower player-tower main-tower" style="left: 370px;">M</div>
-    <div class="tower player-tower" style="left: 560px;">2</div>
+    <div class="tower player-tower" style="left: 180px;">
+      <div class="health-bar"><div class="health-bar-fill"></div></div>
+    </div>
+    <div class="tower player-tower main-tower" style="left: 370px;">
+      <div class="health-bar"><div class="health-bar-fill"></div></div>
+    </div>
+    <div class="tower player-tower" style="left: 560px;">
+      <div class="health-bar"><div class="health-bar-fill"></div></div>
+    </div>
 
     <!-- Bot Towers -->
-    <div class="tower bot-tower" style="left: 180px;">1</div>
-    <div class="tower bot-tower main-tower" style="left: 370px;">M</div>
-    <div class="tower bot-tower" style="left: 560px;">2</div>
+    <div class="tower bot-tower" style="left: 180px;">
+      <div class="health-bar"><div class="health-bar-fill"></div></div>
+    </div>
+    <div class="tower bot-tower main-tower" style="left: 370px;">
+      <div class="health-bar"><div class="health-bar-fill"></div></div>
+    </div>
+    <div class="tower bot-tower" style="left: 560px;">
+      <div class="health-bar"><div class="health-bar-fill"></div></div>
+    </div>
   </div>
   <div id="card-bar">
     <div class="card" data-type="basic">Basic</div>
@@ -130,17 +157,18 @@
     let elixir = 0;
     let selectedCard = 'basic';
 
-    const playerTowers = [
-      { x: 180, y: 540, health: 100 },
-      { x: 370, y: 540, health: 200 }, // Main Tower
-      { x: 560, y: 540, health: 100 },
-    ];
-
-    const botTowers = [
-      { x: 180, y: 0, health: 100 },
-      { x: 370, y: 0, health: 200 }, // Main Tower
-      { x: 560, y: 0, health: 100 },
-    ];
+    const towers = {
+      player: [
+        { x: 180, y: 540, health: 100 },
+        { x: 370, y: 540, health: 200 },
+        { x: 560, y: 540, health: 100 },
+      ],
+      bot: [
+        { x: 180, y: 0, health: 100 },
+        { x: 370, y: 0, health: 200 },
+        { x: 560, y: 0, health: 100 },
+      ],
+    };
 
     const troops = []; // To track all moving troops
 
@@ -155,73 +183,35 @@
       troop.className = `troop ${type === 'bot' ? 'bot-troop' : ''}`;
       troop.style.left = `${x}px`;
       troop.style.top = `${y}px`;
-
-      if (cardType === 'basic') {
-        troop.health = 50;
-        troop.speed = type === 'bot' ? 1 : -1;
-      } else if (cardType === 'fast') {
-        troop.health = 30;
-        troop.speed = type === 'bot' ? 2 : -2;
-      } else if (cardType === 'tank') {
-        troop.health = 100;
-        troop.speed = type === 'bot' ? 0.5 : -0.5;
-      }
-
-      troop.type = type;
       gameBoard.appendChild(troop);
+
+      let stats;
+      if (cardType === 'basic') stats = { health: 50, speed: 1 };
+      if (cardType === 'fast') stats = { health: 30, speed: 2 };
+      if (cardType === 'tank') stats = { health: 100, speed: 0.5 };
+
+      troop.data = { health: stats.health, speed: type === 'bot' ? stats.speed : -stats.speed, target: null };
       troops.push(troop);
     }
 
-    function updateTroops() {
-      troops.forEach((troop, index) => {
-        let currentY = parseFloat(troop.style.top);
-        troop.style.top = `${currentY + troop.speed}px`;
-
-        // Check collision with towers
-        const towers = troop.type === 'bot' ? playerTowers : botTowers;
-        towers.forEach(tower => {
-          if (
-            Math.abs(tower.x - parseInt(troop.style.left)) < 50 &&
-            Math.abs(tower.y - parseInt(troop.style.top)) < 50
-          ) {
-            tower.health -= 10;
-            troop.health -= 10;
-            if (troop.health <= 0) {
-              troop.remove();
-              troops.splice(index, 1);
-            }
-          }
-        });
-
-        // Remove troop if out of bounds
-        if (currentY < 0 || currentY > 600) {
-          troop.remove();
-          troops.splice(index, 1);
-        }
-      });
-    }
-
-    function updateElixir() {
-      elixir = Math.min(elixir + 0.1, 10);
-      elixirBar.style.width = `${(elixir / 10) * 100}%`;
-    }
-
     function gameLoop() {
-      updateTroops();
-      updateElixir();
+      // Elixir refill
+      elixir = Math.min(10, elixir + 0.05);
+      elixirBar.style.width = `${(elixir / 10) * 100}%`;
 
-      // Bot logic: Spawn a troop every 3 seconds
-      if (Math.random() < 0.01) {
-        spawnTroop(370, 10, 'bot', 'basic');
-      }
+      troops.forEach(troop => {
+        const newY = parseFloat(troop.style.top) + troop.data.speed;
+        troop.style.top = `${newY}px`;
+      });
 
       requestAnimationFrame(gameLoop);
     }
 
-    // Player spawns troops by clicking on the game board
     gameBoard.addEventListener('click', (e) => {
       if (elixir >= 1) {
-        spawnTroop(e.clientX - gameBoard.offsetLeft, 550, 'player', selectedCard);
+        const x = e.offsetX;
+        const y = 550;
+        spawnTroop(x, y, 'player', selectedCard);
         elixir -= 1;
       }
     });
