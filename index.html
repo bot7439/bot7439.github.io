@@ -72,17 +72,50 @@
       player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
     }
 
-    function shoot() {
-      if (keys[' ']) {
-        bullets.push({ x: player.x + player.width / 2 - 2.5, y: player.y, width: 5, height: 10, speed: 7 });
-        keys[' '] = false; // Prevent continuous shooting
+    function shoot(direction) {
+      let dx = 0;
+      let dy = 0;
+
+      switch (direction) {
+        case 'up':
+          dx = 0;
+          dy = -7;
+          break;
+        case 'down':
+          dx = 0;
+          dy = 7;
+          break;
+        case 'left':
+          dx = -7;
+          dy = 0;
+          break;
+        case 'right':
+          dx = 7;
+          dy = 0;
+          break;
       }
+
+      bullets.push({
+        x: player.x + player.width / 2 - 2.5,
+        y: player.y + player.height / 2 - 2.5,
+        width: 5,
+        height: 5,
+        dx,
+        dy
+      });
     }
 
     function updateBullets() {
       bullets.forEach((bullet, index) => {
-        bullet.y -= bullet.speed;
-        if (bullet.y < 0) bullets.splice(index, 1);
+        bullet.x += bullet.dx;
+        bullet.y += bullet.dy;
+
+        if (
+          bullet.x < 0 || bullet.x > canvas.width ||
+          bullet.y < 0 || bullet.y > canvas.height
+        ) {
+          bullets.splice(index, 1);
+        }
       });
     }
 
@@ -149,11 +182,13 @@
 
     function gameLoop() {
       updatePlayer();
-      shoot();
+      if (keys['ArrowUp']) shoot('up');
+      if (keys['ArrowDown']) shoot('down');
+      if (keys['ArrowLeft']) shoot('left');
+      if (keys['ArrowRight']) shoot('right');
       updateBullets();
       updateEnemies();
       checkBulletHits();
-
       draw();
 
       requestAnimationFrame(gameLoop);
