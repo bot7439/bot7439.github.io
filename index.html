@@ -114,6 +114,7 @@
       border: 2px solid white;
       cursor: pointer;
     }
+
   </style>
 </head>
 <body>
@@ -144,6 +145,7 @@
       <div class="health-bar"><div class="health-bar-fill"></div></div>
     </div>
   </div>
+
   <div id="card-bar">
     <div class="card" data-type="basic">Basic</div>
     <div class="card" data-type="fast">Fast</div>
@@ -176,7 +178,13 @@
 
     cards.forEach(card => {
       card.addEventListener('click', () => {
-        selectedCard = card.dataset.type;
+        if (elixir >= 10) {
+          selectedCard = card.dataset.type;
+          elixir -= 10; // Deduct elixir when a card is selected
+          spawnTroop(370, 540, 'player', selectedCard); // Spawn troop for player
+        } else {
+          alert('Not enough elixir!');
+        }
       });
     });
 
@@ -228,16 +236,16 @@
         if (parseFloat(troop.style.top) >= playerMainTower.y - 40 && parseFloat(troop.style.top) <= playerMainTower.y + 40 &&
             Math.abs(parseFloat(troop.style.left) - playerMainTower.x) < 40) {
           if (troop.classList.contains('bot-troop')) {
-            damageTower(1, 10); // Damage player's main tower
+            damageTower(1, 10); // Bot attacking player's main tower
             troop.remove();
           }
         }
 
         // Bot Tower: If the troop reaches bot's main tower
-        if (parseFloat(troop.style.top) >= botMainTower.y - 40 && parseFloat(troop.style.top) <= botMainTower.y + 40 &&
+        if (parseFloat(troop.style.top) <= botMainTower.y + 40 && parseFloat(troop.style.top) >= botMainTower.y - 40 &&
             Math.abs(parseFloat(troop.style.left) - botMainTower.x) < 40) {
           if (!troop.classList.contains('bot-troop')) {
-            damageTower(1, 10); // Damage bot's main tower
+            damageTower(4, 10); // Player attacking bot's main tower
             troop.remove();
           }
         }
@@ -246,24 +254,16 @@
 
     function moveTroops() {
       troops.forEach(troop => {
-        let currentLeft = parseFloat(troop.style.left);
-        let currentTop = parseFloat(troop.style.top);
-
-        troop.style.left = `${currentLeft + troop.data.speed}px`;
-
-        // Stop if reached the target
-        if (currentTop <= 100 && !troop.classList.contains('bot-troop')) troop.remove();
+        const currentTop = parseFloat(troop.style.top);
+        troop.style.top = `${currentTop + troop.data.speed}px`;
       });
     }
 
     function gameLoop() {
       if (gameOver) return;
 
-      elixir += 0.1;
-      botElixir += 0.1;
-
-      if (elixir > 100) elixir = 100;
-      if (botElixir > 100) botElixir = 100;
+      elixir = Math.min(elixir + 0.1, 100); // Limit elixir to 100
+      botElixir = Math.min(botElixir + 0.1, 100); // Limit bot's elixir to 100
 
       elixirBar.style.width = `${elixir}%`;
 
