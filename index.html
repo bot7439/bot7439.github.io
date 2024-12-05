@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Juego de Fútbol</title>
+  <title>Juego de Fútbol Mejorado</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      text-align: center;
       margin: 0;
       padding: 0;
-      text-align: center;
       background-color: #4CAF50;
     }
     #game-area {
@@ -19,7 +19,6 @@
       margin: 20px auto;
       background-color: #fff;
       border: 5px solid #000;
-      overflow: hidden;
     }
     .player {
       position: absolute;
@@ -60,7 +59,7 @@
   </style>
 </head>
 <body>
-  <h1>Fútbol 2 vs 2</h1>
+  <h1>Fútbol Mejorado</h1>
   <div id="scoreboard">Equipo Azul: 0 | Equipo Rojo: 0</div>
   <div id="game-area">
     <div id="ball"></div>
@@ -84,20 +83,10 @@
     let blueScore = 0;
     let redScore = 0;
 
-    const keys = {
-      ArrowUp: false,
-      ArrowDown: false,
-      ArrowLeft: false,
-      ArrowRight: false,
-      w: false,
-      s: false,
-      a: false,
-      d: false,
-      i: false,
-      k: false,
-      j: false,
-      l: false,
-    };
+    const ballSpeed = { x: 0, y: 0 }; // Velocidad de la pelota.
+    const playerSpeed = 7; // Velocidad de los jugadores.
+    const friction = 0.98; // Fricción para la pelota.
+    const keys = {};
 
     document.addEventListener("keydown", (e) => (keys[e.key] = true));
     document.addEventListener("keyup", (e) => (keys[e.key] = false));
@@ -117,19 +106,37 @@
       player.style.top = newY + "px";
     }
 
-    function moveBall(dx, dy) {
+    function moveBall() {
       const rect = ball.getBoundingClientRect();
       const areaRect = gameArea.getBoundingClientRect();
-      let newX = rect.left + dx - areaRect.left;
-      let newY = rect.top + dy - areaRect.top;
+      let newX = rect.left + ballSpeed.x;
+      let newY = rect.top + ballSpeed.y;
 
-      if (newX < 0) newX = 0;
-      if (newY < 0) newY = 0;
-      if (newX + rect.width > areaRect.width) newX = areaRect.width - rect.width;
-      if (newY + rect.height > areaRect.height) newY = areaRect.height - rect.height;
+      if (newX < 0 || newX + rect.width > areaRect.width) ballSpeed.x *= -1;
+      if (newY < 0 || newY + rect.height > areaRect.height) ballSpeed.y *= -1;
 
-      ball.style.left = newX + "px";
-      ball.style.top = newY + "px";
+      ball.style.left = Math.max(0, Math.min(areaRect.width - rect.width, newX)) + "px";
+      ball.style.top = Math.max(0, Math.min(areaRect.height - rect.height, newY)) + "px";
+
+      ballSpeed.x *= friction;
+      ballSpeed.y *= friction;
+    }
+
+    function detectCollision(player) {
+      const playerRect = player.getBoundingClientRect();
+      const ballRect = ball.getBoundingClientRect();
+
+      const overlapX = Math.abs(playerRect.left - ballRect.left) < playerRect.width;
+      const overlapY = Math.abs(playerRect.top - ballRect.top) < playerRect.height;
+
+      if (overlapX && overlapY) {
+        const angle = Math.atan2(
+          ballRect.top - playerRect.top,
+          ballRect.left - playerRect.left
+        );
+        ballSpeed.x += Math.cos(angle) * 5;
+        ballSpeed.y += Math.sin(angle) * 5;
+      }
     }
 
     function detectGoal() {
@@ -150,31 +157,31 @@
     function resetBall() {
       ball.style.left = "385px";
       ball.style.top = "235px";
+      ballSpeed.x = 0;
+      ballSpeed.y = 0;
     }
 
     function gameLoop() {
-      if (keys["w"]) movePlayer(players.blue1, 0, -5);
-      if (keys["s"]) movePlayer(players.blue1, 0, 5);
-      if (keys["a"]) movePlayer(players.blue1, -5, 0);
-      if (keys["d"]) movePlayer(players.blue1, 5, 0);
+      if (keys["w"]) movePlayer(players.blue1, 0, -playerSpeed);
+      if (keys["s"]) movePlayer(players.blue1, 0, playerSpeed);
+      if (keys["a"]) movePlayer(players.blue1, -playerSpeed, 0);
+      if (keys["d"]) movePlayer(players.blue1, playerSpeed, 0);
 
-      if (keys["i"]) movePlayer(players.blue2, 0, -5);
-      if (keys["j"]) movePlayer(players.blue2, 0, 5);
-      if (keys["k"]) movePlayer(players.blue2, -5, 0);
-      if (keys["l"]) movePlayer(players.blue2, 5, 0);
+      if (keys["i"]) movePlayer(players.blue2, 0, -playerSpeed);
+      if (keys["k"]) movePlayer(players.blue2, 0, playerSpeed);
+      if (keys["j"]) movePlayer(players.blue2, -playerSpeed, 0);
+      if (keys["l"]) movePlayer(players.blue2, playerSpeed, 0);
 
-      if (keys["ArrowUp"]) movePlayer(players.red1, 0, -5);
-      if (keys["ArrowDown"]) movePlayer(players.red1, 0, 5);
-      if (keys["ArrowLeft"]) movePlayer(players.red1, -5, 0);
-      if (keys["ArrowRight"]) movePlayer(players.red1, 5, 0);
-      
-      if (keys["ArrowUp"]) movePlayer(players.red2, 0, -5);
-      if (keys["ArrowDown"]) movePlayer(players.red2, 0, 5);
-      if (keys["ArrowLeft"]) movePlayer(players.red2, -5, 0);
-      if (keys["ArrowRight"]) movePlayer(players.red2, 5, 0);
+      if (keys["ArrowUp"]) movePlayer(players.red1, 0, -playerSpeed);
+      if (keys["ArrowDown"]) movePlayer(players.red1, 0, playerSpeed);
+      if (keys["ArrowLeft"]) movePlayer(players.red1, -playerSpeed, 0);
+      if (keys["ArrowRight"]) movePlayer(players.red1, playerSpeed, 0);
 
+      for (let player in players) {
+        detectCollision(players[player]);
+      }
 
-      moveBall(0, 0); // Actualizar posición de la pelota.
+      moveBall();
       detectGoal();
       requestAnimationFrame(gameLoop);
     }
