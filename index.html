@@ -172,6 +172,7 @@
     };
 
     const troops = []; // To track all moving troops
+    let gameOver = false;
 
     cards.forEach(card => {
       card.addEventListener('click', () => {
@@ -217,49 +218,58 @@
       }
     }
 
-    function gameLoop() {
-      // Elixir refill
-      elixir = Math.min(10, elixir + 0.05);
-      elixirBar.style.width = `${(elixir / 10) * 100}%`;
-
-      // Bot elixir refill
-      botElixir = Math.min(10, botElixir + 0.05);
-
+    function checkGameOver() {
+      // Check if any troop reaches the main tower (player or bot)
       troops.forEach(troop => {
-        // Move troops
-        const newY = parseFloat(troop.style.top) + troop.data.speed;
-        troop.style.top = `${newY}px`;
+        const playerMainTower = towers.player[1];
+        const botMainTower = towers.bot[1];
 
-        // Check if troop collides with any tower
-        towers.player.forEach((tower, index) => {
-          if (parseFloat(troop.style.top) >= tower.y - 40 && parseFloat(troop.style.top) <= tower.y + 40 &&
-              Math.abs(parseFloat(troop.style.left) - tower.x) < 40) {
-            damageTower(index, 5);
-            troop.remove(); // Remove troop after damage
-          }
-        });
+        if (parseFloat(troop.style.top) >= playerMainTower.y - 40 && parseFloat(troop.style.top) <= playerMainTower.y + 40 &&
+            Math.abs(parseFloat(troop.style.left) - playerMainTower.x) < 40) {
+          alert('Bot Wins!');
+          gameOver = true;
+        }
 
-        towers.bot.forEach((tower, index) => {
-          if (parseFloat(troop.style.top) >= tower.y - 40 && parseFloat(troop.style.top) <= tower.y + 40 &&
-              Math.abs(parseFloat(troop.style.left) - tower.x) < 40) {
-            damageTower(index + 3, 5);
-            troop.remove(); // Remove troop after damage
-          }
-        });
+        if (parseFloat(troop.style.top) >= botMainTower.y - 40 && parseFloat(troop.style.top) <= botMainTower.y + 40 &&
+            Math.abs(parseFloat(troop.style.left) - botMainTower.x) < 40) {
+          alert('You Win!');
+          gameOver = true;
+        }
       });
-
-      spawnBotTroop();  // Bot sends troops automatically
-      requestAnimationFrame(gameLoop);
     }
 
-    gameBoard.addEventListener('click', (e) => {
-      if (elixir >= 1) {
-        const x = e.offsetX;
-        const y = 550;
-        spawnTroop(x, y, 'player', selectedCard);
-        elixir -= 1;
-      }
-    });
+    function moveTroops() {
+      if (gameOver) return;
+      troops.forEach(troop => {
+        let x = parseFloat(troop.style.left);
+        let y = parseFloat(troop.style.top);
+        x += troop.data.speed;
+
+        troop.style.left = `${x}px`;
+
+        // Check if the troop reaches the main tower
+        if (x > 370 && x < 430 && y < 100 && y > 0) {
+          damageTower(troop.data.target, 10);
+          troop.remove();
+        }
+      });
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+      moveTroops();
+      spawnBotTroop();
+      checkGameOver();
+
+      // Update elixir bar
+      elixir += 0.1;
+      botElixir += 0.1;
+      if (elixir > 100) elixir = 100;
+      if (botElixir > 100) botElixir = 100;
+      elixirBar.style.width = `${elixir}%`;
+
+      requestAnimationFrame(gameLoop);
+    }
 
     gameLoop();
   </script>
