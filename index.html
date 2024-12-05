@@ -174,21 +174,27 @@
     };
 
     const troops = []; // To track all moving troops
+    const troopLimits = { player: 10, bot: 10 };
+    let playerTroopsCount = 0;
+    let botTroopsCount = 0;
     let gameOver = false;
 
     cards.forEach(card => {
       card.addEventListener('click', () => {
-        if (elixir >= 10) {
+        if (elixir >= 10 && playerTroopsCount < troopLimits.player) {
           selectedCard = card.dataset.type;
           elixir -= 10; // Deduct elixir when a card is selected
           spawnTroop(370, 540, 'player', selectedCard); // Spawn troop for player
         } else {
-          alert('Not enough elixir!');
+          alert('Not enough elixir or troop limit reached!');
         }
       });
     });
 
     function spawnTroop(x, y, type, cardType) {
+      if (type === 'player') playerTroopsCount++;
+      if (type === 'bot') botTroopsCount++;
+
       const troop = document.createElement('div');
       troop.className = `troop ${type === 'bot' ? 'bot-troop' : ''}`;
       troop.style.left = `${x}px`;
@@ -196,16 +202,16 @@
       gameBoard.appendChild(troop);
 
       let stats;
-      if (cardType === 'basic') stats = { health: 50, speed: 1 };
-      if (cardType === 'fast') stats = { health: 30, speed: 2 };
-      if (cardType === 'tank') stats = { health: 100, speed: 0.5 };
+      if (cardType === 'basic') stats = { health: 50, speed: 1, attack: 10 };
+      if (cardType === 'fast') stats = { health: 30, speed: 2, attack: 5 };
+      if (cardType === 'tank') stats = { health: 100, speed: 0.5, attack: 20 };
 
-      troop.data = { health: stats.health, speed: type === 'bot' ? stats.speed : -stats.speed, target: null };
+      troop.data = { health: stats.health, speed: type === 'bot' ? stats.speed : -stats.speed, attack: stats.attack, target: null };
       troops.push(troop);
     }
 
     function spawnBotTroop() {
-      if (botElixir >= 1) {
+      if (botElixir >= 1 && botTroopsCount < troopLimits.bot) {
         const x = 370;
         const y = 50;
         spawnTroop(x, y, 'bot', 'basic');
@@ -226,50 +232,37 @@
       }
     }
 
-    function checkGameOver() {
-      // Check if any troop reaches the main tower (player or bot)
+    function checkTroopCollision() {
       troops.forEach(troop => {
-        const playerMainTower = towers.player[1];
-        const botMainTower = towers.bot[1];
+        const enemy = troop.classList.contains('bot-troop') ? 'player' : 'bot';
+        const targetTower = enemy === 'bot' ? 4 : 1; // Target the main tower
 
-        // Player Tower: If the troop reaches player's main tower
-        if (parseFloat(troop.style.top) >= playerMainTower.y - 40 && parseFloat(troop.style.top) <= playerMainTower.y + 40 &&
-            Math.abs(parseFloat(troop.style.left) - playerMainTower.x) < 40) {
-          if (troop.classList.contains('bot-troop')) {
-            damageTower(1, 10); // Bot attacking player's main tower
-            troop.remove();
-          }
-        }
-
-        // Bot Tower: If the troop reaches bot's main tower
-        if (parseFloat(troop.style.top) <= botMainTower.y + 40 && parseFloat(troop.style.top) >= botMainTower.y - 40 &&
-            Math.abs(parseFloat(troop.style.left) - botMainTower.x) < 40) {
-          if (!troop.classList.contains('bot-troop')) {
-            damageTower(4, 10); // Player attacking bot's main tower
-            troop.remove();
-          }
-        }
-      });
-    }
-
-    function moveTroops() {
-      troops.forEach(troop => {
         const currentTop = parseFloat(troop.style.top);
-        troop.style.top = `${currentTop + troop.data.speed}px`;
+        const currentLeft = parseFloat(troop.style.left);
+
+        if (currentTop <= 50 && currentLeft >= 360 && currentLeft <= 480) {
+          // Damage main tower if troop reaches the opponent's tower
+          damageTower(targetTower, troop.data.attack);
+          troop.remove();
+        }
       });
     }
 
     function gameLoop() {
       if (gameOver) return;
 
-      elixir = Math.min(elixir + 0.1, 100); // Limit elixir to 100
-      botElixir = Math.min(botElixir + 0.1, 100); // Limit bot's elixir to 100
+      elixir = Math.min(elixir + 0.1, 100); 
+      botElixir = Math.min(botElixir + 0.1, 100);
 
       elixirBar.style.width = `${elixir}%`;
 
       spawnBotTroop();
-      moveTroops();
-      checkGameOver();
+      checkTroopCollision();
+
+      troops.forEach(troop => {
+        const currentTop = parseFloat(troop.style.top);
+        troop.style.top = `${currentTop + troop.data.speed}px`;
+      });
 
       requestAnimationFrame(gameLoop);
     }
