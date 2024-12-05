@@ -3,271 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clash Royale Web</title>
+  <title>Mini DOOM</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: #4CAF50;
-    }
-
-    #game-board {
-      position: relative;
-      width: 800px;
-      height: 600px;
-      background-color: #006400;
-      border: 5px solid white;
-      margin-top: 20px;
       overflow: hidden;
-    }
-
-    .tower {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      background-color: #FFD700;
-      border-radius: 10px;
-      text-align: center;
-      line-height: 60px;
-      font-weight: bold;
-    }
-
-    .player-tower {
-      bottom: 10px;
-    }
-
-    .bot-tower {
-      top: 10px;
-    }
-
-    .main-tower {
-      width: 80px;
-      height: 80px;
-      background-color: #FF4500;
-      line-height: 80px;
-    }
-
-    .health-bar {
-      position: absolute;
-      bottom: -10px;
-      left: 0;
-      width: 100%;
-      height: 5px;
-      background-color: red;
-    }
-
-    .health-bar-fill {
-      width: 100%;
-      height: 100%;
-      background-color: green;
-    }
-
-    .troop {
-      position: absolute;
-      width: 40px;
-      height: 40px;
-      background-color: blue;
-      border-radius: 50%;
-      text-align: center;
-      line-height: 40px;
+      background: #000;
       color: white;
-      font-weight: bold;
+      font-family: Arial, sans-serif;
     }
 
-    .bot-troop {
-      background-color: red;
+    #gameCanvas {
+      display: block;
+      margin: auto;
+      background: #333;
+      border: 2px solid #fff;
     }
 
-    #elixir-bar {
-      width: 300px;
-      height: 20px;
-      background-color: #333;
-      border: 2px solid white;
-      margin-top: 10px;
-      position: relative;
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 18px;
     }
-
-    #elixir-fill {
-      height: 100%;
-      background-color: purple;
-      width: 0;
-    }
-
-    #card-bar {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
-    }
-
-    .card {
-      width: 80px;
-      height: 100px;
-      background-color: #FFA500;
-      margin: 0 5px;
-      text-align: center;
-      line-height: 100px;
-      font-weight: bold;
-      border: 2px solid white;
-      cursor: pointer;
-    }
-
   </style>
 </head>
 <body>
-  <h1>Clash Royale Web</h1>
-  <div id="elixir-bar">
-    <div id="elixir-fill"></div>
-  </div>
-  <div id="game-board">
-    <!-- Player Towers -->
-    <div class="tower player-tower" style="left: 180px;">
-      <div class="health-bar"><div class="health-bar-fill"></div></div>
-    </div>
-    <div class="tower player-tower main-tower" style="left: 370px;">
-      <div class="health-bar"><div class="health-bar-fill"></div></div>
-    </div>
-    <div class="tower player-tower" style="left: 560px;">
-      <div class="health-bar"><div class="health-bar-fill"></div></div>
-    </div>
-
-    <!-- Bot Towers -->
-    <div class="tower bot-tower" style="left: 180px;">
-      <div class="health-bar"><div class="health-bar-fill"></div></div>
-    </div>
-    <div class="tower bot-tower main-tower" style="left: 370px;">
-      <div class="health-bar"><div class="health-bar-fill"></div></div>
-    </div>
-    <div class="tower bot-tower" style="left: 560px;">
-      <div class="health-bar"><div class="health-bar-fill"></div></div>
-    </div>
-  </div>
-
-  <div id="card-bar">
-    <div class="card" data-type="basic">Basic</div>
-    <div class="card" data-type="fast">Fast</div>
-    <div class="card" data-type="tank">Tank</div>
-  </div>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div id="score">Health: 100 | Score: 0</div>
 
   <script>
-    const gameBoard = document.getElementById('game-board');
-    const elixirBar = document.getElementById('elixir-fill');
-    const cards = document.querySelectorAll('.card');
-    let elixir = 0;
-    let selectedCard = 'basic';
-    let botElixir = 0;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-    const towers = {
-      player: [
-        { x: 180, y: 540, health: 100 },
-        { x: 370, y: 540, health: 200 },
-        { x: 560, y: 540, health: 100 },
-      ],
-      bot: [
-        { x: 180, y: 0, health: 100 },
-        { x: 370, y: 0, health: 200 },
-        { x: 560, y: 0, health: 100 },
-      ],
-    };
+    // Game variables
+    const player = { x: 400, y: 300, width: 20, height: 20, speed: 4, health: 100 };
+    const bullets = [];
+    const enemies = [];
+    let score = 0;
+    let keys = {};
 
-    const troops = []; // To track all moving troops
-    const troopLimits = { player: 10, bot: 10 };
-    let playerTroopsCount = 0;
-    let botTroopsCount = 0;
-    let gameOver = false;
+    // Key handling
+    document.addEventListener('keydown', (e) => keys[e.key] = true);
+    document.addEventListener('keyup', (e) => keys[e.key] = false);
 
-    cards.forEach(card => {
-      card.addEventListener('click', () => {
-        if (elixir >= 10 && playerTroopsCount < troopLimits.player) {
-          selectedCard = card.dataset.type;
-          elixir -= 10; // Deduct elixir when a card is selected
-          spawnTroop(370, 540, 'player', selectedCard); // Spawn troop for player
-        } else {
-          alert('Not enough elixir or troop limit reached!');
-        }
-      });
-    });
-
-    function spawnTroop(x, y, type, cardType) {
-      if (type === 'player') playerTroopsCount++;
-      if (type === 'bot') botTroopsCount++;
-
-      const troop = document.createElement('div');
-      troop.className = `troop ${type === 'bot' ? 'bot-troop' : ''}`;
-      troop.style.left = `${x}px`;
-      troop.style.top = `${y}px`;
-      gameBoard.appendChild(troop);
-
-      let stats;
-      if (cardType === 'basic') stats = { health: 50, speed: 1, attack: 10 };
-      if (cardType === 'fast') stats = { health: 30, speed: 2, attack: 5 };
-      if (cardType === 'tank') stats = { health: 100, speed: 0.5, attack: 20 };
-
-      troop.data = { health: stats.health, speed: type === 'bot' ? stats.speed : -stats.speed, attack: stats.attack, target: null };
-      troops.push(troop);
+    // Helper functions
+    function drawRect(x, y, width, height, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, width, height);
     }
 
-    function spawnBotTroop() {
-      if (botElixir >= 10 && botTroopsCount < troopLimits.bot) {
-        const x = 370;
-        const y = 50;
-        spawnTroop(x, y, 'bot', 'basic');
-        botElixir -= 10;
+    function spawnEnemy() {
+      const x = Math.random() > 0.5 ? 0 : canvas.width;
+      const y = Math.random() * canvas.height;
+      const size = 20;
+      const speed = 1.5 + Math.random();
+      enemies.push({ x, y, width: size, height: size, speed });
+    }
+
+    function updatePlayer() {
+      if (keys['w']) player.y -= player.speed;
+      if (keys['s']) player.y += player.speed;
+      if (keys['a']) player.x -= player.speed;
+      if (keys['d']) player.x += player.speed;
+
+      // Keep player inside the canvas
+      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+      player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+    }
+
+    function shoot() {
+      if (keys[' ']) {
+        bullets.push({ x: player.x + player.width / 2 - 2.5, y: player.y, width: 5, height: 10, speed: 7 });
+        keys[' '] = false; // Prevent continuous shooting
       }
     }
 
-    function damageTower(targetTower, damage) {
-      const tower = towers[targetTower];
-      tower.health -= damage;
-
-      // Update health bar for the tower
-      const healthBar = gameBoard.querySelectorAll('.health-bar')[targetTower].querySelector('.health-bar-fill');
-      healthBar.style.width = `${(tower.health / 100) * 100}%`;
-
-      if (tower.health <= 0) {
-        console.log(`${targetTower} tower destroyed!`);
-      }
+    function updateBullets() {
+      bullets.forEach((bullet, index) => {
+        bullet.y -= bullet.speed;
+        if (bullet.y < 0) bullets.splice(index, 1);
+      });
     }
 
-    function checkTroopCollision() {
-      troops.forEach(troop => {
-        const enemy = troop.classList.contains('bot-troop') ? 'player' : 'bot';
-        const targetTower = enemy === 'bot' ? 4 : 1; // Target the main tower
+    function updateEnemies() {
+      enemies.forEach((enemy, index) => {
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const directionX = dx / distance;
+        const directionY = dy / distance;
 
-        const currentTop = parseFloat(troop.style.top);
-        const currentLeft = parseFloat(troop.style.left);
+        enemy.x += directionX * enemy.speed;
+        enemy.y += directionY * enemy.speed;
 
-        if (currentTop <= 50 && currentLeft >= 360 && currentLeft <= 480) {
-          // Damage main tower if troop reaches the opponent's tower
-          damageTower(targetTower, troop.data.attack);
-          troop.remove();
-          if (enemy === 'player') playerTroopsCount--;
-          if (enemy === 'bot') botTroopsCount--;
+        // Check collision with player
+        if (
+          enemy.x < player.x + player.width &&
+          enemy.x + enemy.width > player.x &&
+          enemy.y < player.y + player.height &&
+          enemy.y + enemy.height > player.y
+        ) {
+          player.health -= 10;
+          enemies.splice(index, 1);
+          if (player.health <= 0) {
+            alert('Game Over! Your score: ' + score);
+            document.location.reload();
+          }
         }
       });
+    }
+
+    function checkBulletHits() {
+      bullets.forEach((bullet, bIndex) => {
+        enemies.forEach((enemy, eIndex) => {
+          if (
+            bullet.x < enemy.x + enemy.width &&
+            bullet.x + bullet.width > enemy.x &&
+            bullet.y < enemy.y + enemy.height &&
+            bullet.y + bullet.height > enemy.y
+          ) {
+            enemies.splice(eIndex, 1);
+            bullets.splice(bIndex, 1);
+            score += 10;
+          }
+        });
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw player
+      drawRect(player.x, player.y, player.width, player.height, 'green');
+
+      // Draw bullets
+      bullets.forEach(bullet => drawRect(bullet.x, bullet.y, bullet.width, bullet.height, 'yellow'));
+
+      // Draw enemies
+      enemies.forEach(enemy => drawRect(enemy.x, enemy.y, enemy.width, enemy.height, 'red'));
+
+      // Draw score and health
+      document.getElementById('score').textContent = `Health: ${player.health} | Score: ${score}`;
     }
 
     function gameLoop() {
-      if (gameOver) return;
+      updatePlayer();
+      shoot();
+      updateBullets();
+      updateEnemies();
+      checkBulletHits();
 
-      elixir = Math.min(elixir + 0.1, 100);
-      botElixir = Math.min(botElixir + 0.1, 100);
-      elixirBar.style.width = `${elixir}%`;
-
-      spawnBotTroop();
-      checkTroopCollision();
-
-      troops.forEach(troop => {
-        const currentTop = parseFloat(troop.style.top);
-        troop.style.top = `${currentTop + troop.data.speed}px`;
-      });
+      draw();
 
       requestAnimationFrame(gameLoop);
     }
 
+    setInterval(spawnEnemy, 2000); // Spawn enemies every 2 seconds
     gameLoop();
   </script>
 </body>
