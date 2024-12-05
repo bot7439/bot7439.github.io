@@ -156,6 +156,7 @@
     const cards = document.querySelectorAll('.card');
     let elixir = 0;
     let selectedCard = 'basic';
+    let botElixir = 0;
 
     const towers = {
       player: [
@@ -194,16 +195,60 @@
       troops.push(troop);
     }
 
+    function spawnBotTroop() {
+      if (botElixir >= 1) {
+        const x = 370;
+        const y = 50;
+        spawnTroop(x, y, 'bot', 'basic');
+        botElixir -= 1;
+      }
+    }
+
+    function damageTower(targetTower, damage) {
+      const tower = towers[targetTower];
+      tower.health -= damage;
+
+      // Update health bar for the tower
+      const healthBar = gameBoard.querySelectorAll('.health-bar')[targetTower].querySelector('.health-bar-fill');
+      healthBar.style.width = `${(tower.health / 100) * 100}%`;
+
+      if (tower.health <= 0) {
+        console.log(`${targetTower} tower destroyed!`);
+      }
+    }
+
     function gameLoop() {
       // Elixir refill
       elixir = Math.min(10, elixir + 0.05);
       elixirBar.style.width = `${(elixir / 10) * 100}%`;
 
+      // Bot elixir refill
+      botElixir = Math.min(10, botElixir + 0.05);
+
       troops.forEach(troop => {
+        // Move troops
         const newY = parseFloat(troop.style.top) + troop.data.speed;
         troop.style.top = `${newY}px`;
+
+        // Check if troop collides with any tower
+        towers.player.forEach((tower, index) => {
+          if (parseFloat(troop.style.top) >= tower.y - 40 && parseFloat(troop.style.top) <= tower.y + 40 &&
+              Math.abs(parseFloat(troop.style.left) - tower.x) < 40) {
+            damageTower(index, 5);
+            troop.remove(); // Remove troop after damage
+          }
+        });
+
+        towers.bot.forEach((tower, index) => {
+          if (parseFloat(troop.style.top) >= tower.y - 40 && parseFloat(troop.style.top) <= tower.y + 40 &&
+              Math.abs(parseFloat(troop.style.left) - tower.x) < 40) {
+            damageTower(index + 3, 5);
+            troop.remove(); // Remove troop after damage
+          }
+        });
       });
 
+      spawnBotTroop();  // Bot sends troops automatically
       requestAnimationFrame(gameLoop);
     }
 
@@ -211,12 +256,3 @@
       if (elixir >= 1) {
         const x = e.offsetX;
         const y = 550;
-        spawnTroop(x, y, 'player', selectedCard);
-        elixir -= 1;
-      }
-    });
-
-    gameLoop();
-  </script>
-</body>
-</html>
