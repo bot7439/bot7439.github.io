@@ -256,3 +256,12 @@
       if (elixir >= 1) {
         const x = e.offsetX;
         const y = 550;
+        spawnTroop(x, y, 'player', selectedCard);
+        elixir -= 1;
+      }
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>
