@@ -1,221 +1,193 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Juego de Fútbol con Porterías</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clash Royale Web</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       background-color: #4CAF50;
-      color: #fff;
     }
-    #scoreboard {
-      margin: 20px;
-      font-size: 24px;
-    }
-    #game-area {
+
+    #game-board {
       position: relative;
       width: 800px;
-      height: 500px;
-      margin: 0 auto;
+      height: 600px;
       background-color: #006400;
-      border: 5px solid #fff;
+      border: 5px solid white;
+      margin-top: 20px;
       overflow: hidden;
     }
-    .player {
+
+    .tower {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background-color: #FFD700;
+      border-radius: 10px;
+      text-align: center;
+      line-height: 60px;
+      font-weight: bold;
+    }
+
+    .player-tower {
+      bottom: 10px;
+    }
+
+    .bot-tower {
+      top: 10px;
+    }
+
+    .main-tower {
+      width: 80px;
+      height: 80px;
+      background-color: #FF4500;
+      line-height: 80px;
+    }
+
+    .troop {
       position: absolute;
       width: 40px;
       height: 40px;
       background-color: blue;
       border-radius: 50%;
-      transition: background-color 0.2s ease, transform 0.1s linear;
+      text-align: center;
+      line-height: 40px;
+      color: white;
+      font-weight: bold;
     }
-    .team-red {
+
+    .bot-troop {
       background-color: red;
     }
-    #ball {
-      position: absolute;
-      width: 30px;
-      height: 30px;
-      background-color: white;
-      border-radius: 50%;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+    #elixir-bar {
+      width: 300px;
+      height: 20px;
+      background-color: #333;
+      border: 2px solid white;
+      margin-top: 10px;
+      position: relative;
     }
-    .goal {
-      position: absolute;
-      width: 30px;
-      height: 120px;
-      background-color: yellow;
-      border: 3px solid #fff;
-      top: 190px;
-    }
-    .goal.left {
-      left: -25px;
-    }
-    .goal.right {
-      right: -25px;
+
+    #elixir-fill {
+      height: 100%;
+      background-color: purple;
+      width: 0;
     }
   </style>
 </head>
 <body>
-  <h1>Fútbol 2 vs 2</h1>
-  <div id="scoreboard">Equipo Azul: 0 | Equipo Rojo: 0</div>
-  <div id="game-area">
-    <div id="ball" style="left: 385px; top: 235px;"></div>
-    <!-- Equipo Azul -->
-    <div class="player" id="blue1" style="left: 100px; top: 200px;"></div>
-    <div class="player" id="blue2" style="left: 100px; top: 300px;"></div>
-    <!-- Equipo Rojo -->
-    <div class="player team-red" id="red1" style="left: 660px; top: 200px;"></div>
-    <div class="player team-red" id="red2" style="left: 660px; top: 300px;"></div>
-    <!-- Porterías -->
-    <div class="goal left"></div>
-    <div class="goal right"></div>
+  <h1>Clash Royale Web</h1>
+  <div id="elixir-bar">
+    <div id="elixir-fill"></div>
+  </div>
+  <div id="game-board">
+    <!-- Player Towers -->
+    <div class="tower player-tower" style="left: 180px;">1</div>
+    <div class="tower player-tower main-tower" style="left: 370px;">M</div>
+    <div class="tower player-tower" style="left: 560px;">2</div>
+
+    <!-- Bot Towers -->
+    <div class="tower bot-tower" style="left: 180px;">1</div>
+    <div class="tower bot-tower main-tower" style="left: 370px;">M</div>
+    <div class="tower bot-tower" style="left: 560px;">2</div>
   </div>
 
   <script>
-    const gameArea = document.getElementById("game-area");
-    const ball = document.getElementById("ball");
-    const scoreboard = document.getElementById("scoreboard");
-    const players = {
-      blue1: document.getElementById("blue1"),
-      blue2: document.getElementById("blue2"),
-      red1: document.getElementById("red1"),
-      red2: document.getElementById("red2"),
-    };
-    let blueScore = 0;
-    let redScore = 0;
+    const gameBoard = document.getElementById('game-board');
+    const elixirBar = document.getElementById('elixir-fill');
+    let elixir = 0;
 
-    const keys = {};
-    const playerSpeed = 5;
-    const friction = 0.98;
-    let ballSpeed = { x: 0, y: 0 };
+    const playerTowers = [
+      { x: 180, y: 540, health: 100 },
+      { x: 370, y: 540, health: 200 }, // Main Tower
+      { x: 560, y: 540, health: 100 },
+    ];
 
-    document.addEventListener("keydown", (e) => {
-      keys[e.key.toLowerCase()] = true;
-    });
-    document.addEventListener("keyup", (e) => {
-      keys[e.key.toLowerCase()] = false;
-    });
+    const botTowers = [
+      { x: 180, y: 0, health: 100 },
+      { x: 370, y: 0, health: 200 }, // Main Tower
+      { x: 560, y: 0, health: 100 },
+    ];
 
-    function movePlayer(player, dx, dy) {
-      let currentX = parseInt(player.style.left);
-      let currentY = parseInt(player.style.top);
-      let newX = currentX + dx;
-      let newY = currentY + dy;
+    const troops = []; // To track all moving troops
 
-      if (newX < 0) newX = 0;
-      if (newY < 0) newY = 0;
-      if (newX > gameArea.clientWidth - player.clientWidth) newX = gameArea.clientWidth - player.clientWidth;
-      if (newY > gameArea.clientHeight - player.clientHeight) newY = gameArea.clientHeight - player.clientHeight;
+    function spawnTroop(x, y, type) {
+      const troop = document.createElement('div');
+      troop.className = `troop ${type === 'bot' ? 'bot-troop' : ''}`;
+      troop.style.left = `${x}px`;
+      troop.style.top = `${y}px`;
+      troop.health = 50;
+      troop.speed = type === 'bot' ? -1 : 1;
+      troop.type = type;
 
-      player.style.left = newX + "px";
-      player.style.top = newY + "px";
+      gameBoard.appendChild(troop);
+      troops.push(troop);
     }
 
-    function moveBall() {
-      let currentX = parseInt(ball.style.left);
-      let currentY = parseInt(ball.style.top);
-      let newX = currentX + ballSpeed.x;
-      let newY = currentY + ballSpeed.y;
+    function updateTroops() {
+      troops.forEach((troop, index) => {
+        let currentY = parseInt(troop.style.top);
+        troop.style.top = `${currentY + troop.speed}px`;
 
-      if (newX < 0 || newX > gameArea.clientWidth - ball.clientWidth) ballSpeed.x *= -1;
-      if (newY < 0 || newY > gameArea.clientHeight - ball.clientHeight) ballSpeed.y *= -1;
+        // Check collision with towers
+        const towers = troop.type === 'bot' ? playerTowers : botTowers;
+        towers.forEach((tower) => {
+          if (
+            Math.abs(tower.x - parseInt(troop.style.left)) < 50 &&
+            Math.abs(tower.y - parseInt(troop.style.top)) < 50
+          ) {
+            tower.health -= 10;
+            troop.health -= 10;
+            if (troop.health <= 0) {
+              troop.remove();
+              troops.splice(index, 1);
+            }
+          }
+        });
 
-      ballSpeed.x *= friction;
-      ballSpeed.y *= friction;
-
-      ball.style.left = Math.max(0, Math.min(gameArea.clientWidth - ball.clientWidth, newX)) + "px";
-      ball.style.top = Math.max(0, Math.min(gameArea.clientHeight - ball.clientHeight, newY)) + "px";
-    }
-
-    function detectCollisions() {
-      for (let key in players) {
-        const player = players[key];
-        const playerRect = player.getBoundingClientRect();
-        const ballRect = ball.getBoundingClientRect();
-        const gameAreaRect = gameArea.getBoundingClientRect();
-
-        const playerX = playerRect.left - gameAreaRect.left;
-        const playerY = playerRect.top - gameAreaRect.top;
-
-        if (
-          playerX < parseInt(ball.style.left) + ball.clientWidth &&
-          playerX + player.clientWidth > parseInt(ball.style.left) &&
-          playerY < parseInt(ball.style.top) + ball.clientHeight &&
-          playerY + player.clientHeight > parseInt(ball.style.top)
-        ) {
-          const centerPlayerX = playerX + player.clientWidth / 2;
-          const centerPlayerY = playerY + player.clientHeight / 2;
-          const centerBallX = parseInt(ball.style.left) + ball.clientWidth / 2;
-          const centerBallY = parseInt(ball.style.top) + ball.clientHeight / 2;
-
-          const angle = Math.atan2(centerBallY - centerPlayerY, centerBallX - centerPlayerX);
-          const force = 6;
-
-          ballSpeed.x += Math.cos(angle) * force;
-          ballSpeed.y += Math.sin(angle) * force;
+        // Remove troop if out of bounds
+        if (currentY < 0 || currentY > 600) {
+          troop.remove();
+          troops.splice(index, 1);
         }
-      }
+      });
     }
 
-    function detectGoals() {
-      const ballLeft = parseInt(ball.style.left);
-      const ballRight = ballLeft + ball.clientWidth;
-      const ballTop = parseInt(ball.style.top);
-      const ballBottom = ballTop + ball.clientHeight;
-
-      if (ballLeft <= 0 && ballTop >= 190 && ballBottom <= 310) {
-        redScore++;
-        updateScoreboard();
-        resetBall();
-      }
-
-      if (ballRight >= gameArea.clientWidth && ballTop >= 190 && ballBottom <= 310) {
-        blueScore++;
-        updateScoreboard();
-        resetBall();
-      }
-    }
-
-    function updateScoreboard() {
-      scoreboard.textContent = `Equipo Azul: ${blueScore} | Equipo Rojo: ${redScore}`;
-    }
-
-    function resetBall() {
-      ball.style.left = "385px";
-      ball.style.top = "235px";
-      ballSpeed = { x: 0, y: 0 };
+    function updateElixir() {
+      elixir = Math.min(elixir + 0.1, 10);
+      elixirBar.style.width = `${(elixir / 10) * 100}%`;
     }
 
     function gameLoop() {
-      if (keys["w"]) movePlayer(players.blue1, 0, -playerSpeed);
-      if (keys["s"]) movePlayer(players.blue1, 0, playerSpeed);
-      if (keys["a"]) movePlayer(players.blue1, -playerSpeed, 0);
-      if (keys["d"]) movePlayer(players.blue1, playerSpeed, 0);
+      updateTroops();
+      updateElixir();
 
-      if (keys["i"]) movePlayer(players.blue2, 0, -playerSpeed);
-      if (keys["k"]) movePlayer(players.blue2, 0, playerSpeed);
-      if (keys["j"]) movePlayer(players.blue2, -playerSpeed, 0);
-      if (keys["l"]) movePlayer(players.blue2, playerSpeed, 0);
-
-      if (keys["arrowup"]) movePlayer(players.red1, 0, -playerSpeed);
-      if (keys["arrowdown"]) movePlayer(players.red1, 0, playerSpeed);
-      if (keys["arrowleft"]) movePlayer(players.red1, -playerSpeed, 0);
-      if (keys["arrowright"]) movePlayer(players.red1, playerSpeed, 0);
-
-      moveBall();
-      detectCollisions();
-      detectGoals();
+      // Bot logic: Spawn a troop every 3 seconds
+      if (Math.random() < 0.01) {
+        spawnTroop(370, 10, 'bot');
+      }
 
       requestAnimationFrame(gameLoop);
     }
+
+    // Player can spawn troops with clicks
+    gameBoard.addEventListener('click', (e) => {
+      if (elixir >= 1) {
+        spawnTroop(e.clientX - gameBoard.offsetLeft, 550, 'player');
+        elixir -= 1;
+      }
+    });
 
     gameLoop();
   </script>
 </body>
 </html>
+
