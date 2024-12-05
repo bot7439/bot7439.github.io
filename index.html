@@ -224,26 +224,47 @@
         const playerMainTower = towers.player[1];
         const botMainTower = towers.bot[1];
 
+        // Player Tower: If the troop reaches player's main tower
         if (parseFloat(troop.style.top) >= playerMainTower.y - 40 && parseFloat(troop.style.top) <= playerMainTower.y + 40 &&
             Math.abs(parseFloat(troop.style.left) - playerMainTower.x) < 40) {
-          alert('Bot Wins!');
-          gameOver = true;
+          if (troop.classList.contains('bot-troop')) {
+            damageTower(1, 10); // Damage player's main tower
+            troop.remove();
+          }
         }
 
+        // Bot Tower: If the troop reaches bot's main tower
         if (parseFloat(troop.style.top) >= botMainTower.y - 40 && parseFloat(troop.style.top) <= botMainTower.y + 40 &&
             Math.abs(parseFloat(troop.style.left) - botMainTower.x) < 40) {
-          alert('You Win!');
-          gameOver = true;
+          if (!troop.classList.contains('bot-troop')) {
+            damageTower(1, 10); // Damage bot's main tower
+            troop.remove();
+          }
         }
       });
     }
 
-    function moveTroops() {
+    function gameLoop() {
       if (gameOver) return;
-      troops.forEach(troop => {
-        let x = parseFloat(troop.style.left);
-        let y = parseFloat(troop.style.top);
-        x += troop.data.speed;
+
+      elixir += 0.1;
+      botElixir += 0.1;
+
+      if (elixir > 100) elixir = 100;
+      if (botElixir > 100) botElixir = 100;
+
+      elixirBar.style.width = `${elixir}%`;
+
+      spawnBotTroop();
+      checkGameOver();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
 
         troop.style.left = `${x}px`;
 
