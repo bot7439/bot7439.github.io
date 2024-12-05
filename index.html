@@ -244,6 +244,18 @@
       });
     }
 
+    function moveTroops() {
+      troops.forEach(troop => {
+        let currentLeft = parseFloat(troop.style.left);
+        let currentTop = parseFloat(troop.style.top);
+
+        troop.style.left = `${currentLeft + troop.data.speed}px`;
+
+        // Stop if reached the target
+        if (currentTop <= 100 && !troop.classList.contains('bot-troop')) troop.remove();
+      });
+    }
+
     function gameLoop() {
       if (gameOver) return;
 
@@ -256,6 +268,7 @@
       elixirBar.style.width = `${elixir}%`;
 
       spawnBotTroop();
+      moveTroops();
       checkGameOver();
 
       requestAnimationFrame(gameLoop);
@@ -265,4 +278,3 @@
   </script>
 </body>
 </html>
-
