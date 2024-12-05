@@ -32,7 +32,7 @@
       height: 40px;
       background-color: blue;
       border-radius: 50%;
-      transition: background-color 0.3s;
+      transition: background-color 0.2s ease, transform 0.1s linear;
     }
     .team-red {
       background-color: red;
@@ -43,19 +43,21 @@
       height: 30px;
       background-color: white;
       border-radius: 50%;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
     .goal {
       position: absolute;
-      width: 20px;
+      width: 30px;
       height: 120px;
       background-color: yellow;
+      border: 3px solid #fff;
       top: 190px;
     }
     .goal.left {
-      left: -20px;
+      left: -25px;
     }
     .goal.right {
-      right: -20px;
+      right: -25px;
     }
   </style>
 </head>
@@ -89,8 +91,8 @@
     let redScore = 0;
 
     const keys = {};
-    const playerSpeed = 7;
-    const friction = 0.95;
+    const playerSpeed = 5;
+    const friction = 0.98;
     let ballSpeed = { x: 0, y: 0 };
 
     document.addEventListener("keydown", (e) => {
@@ -153,7 +155,7 @@
           const centerBallY = parseInt(ball.style.top) + ball.clientHeight / 2;
 
           const angle = Math.atan2(centerBallY - centerPlayerY, centerBallX - centerPlayerX);
-          const force = 5;
+          const force = 6;
 
           ballSpeed.x += Math.cos(angle) * force;
           ballSpeed.y += Math.sin(angle) * force;
