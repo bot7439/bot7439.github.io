@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Juego de Fútbol Mejorado</title>
+  <title>Juego de Fútbol con Porterías</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -47,9 +47,9 @@
     .goal {
       position: absolute;
       width: 20px;
-      height: 100px;
+      height: 120px;
       background-color: yellow;
-      top: 200px;
+      top: 190px;
     }
     .goal.left {
       left: -20px;
@@ -70,7 +70,7 @@
     <!-- Equipo Rojo -->
     <div class="player team-red" id="red1" style="left: 660px; top: 200px;"></div>
     <div class="player team-red" id="red2" style="left: 660px; top: 300px;"></div>
-    <!-- Goles -->
+    <!-- Porterías -->
     <div class="goal left"></div>
     <div class="goal right"></div>
   </div>
@@ -89,13 +89,10 @@
     let redScore = 0;
 
     const keys = {};
-    const playerSpeed = 7; // Aumentamos la velocidad de los jugadores
-    const friction = 0.95; // Fricción para la pelota
-
-    // Velocidad de la pelota
+    const playerSpeed = 7;
+    const friction = 0.95;
     let ballSpeed = { x: 0, y: 0 };
 
-    // Detectar teclas presionadas
     document.addEventListener("keydown", (e) => {
       keys[e.key.toLowerCase()] = true;
     });
@@ -103,14 +100,12 @@
       keys[e.key.toLowerCase()] = false;
     });
 
-    // Función para mover jugadores
     function movePlayer(player, dx, dy) {
       let currentX = parseInt(player.style.left);
       let currentY = parseInt(player.style.top);
       let newX = currentX + dx;
       let newY = currentY + dy;
 
-      // Límites del campo de juego
       if (newX < 0) newX = 0;
       if (newY < 0) newY = 0;
       if (newX > gameArea.clientWidth - player.clientWidth) newX = gameArea.clientWidth - player.clientWidth;
@@ -120,37 +115,22 @@
       player.style.top = newY + "px";
     }
 
-    // Función para mover la pelota
     function moveBall() {
       let currentX = parseInt(ball.style.left);
       let currentY = parseInt(ball.style.top);
       let newX = currentX + ballSpeed.x;
       let newY = currentY + ballSpeed.y;
 
-      // Colisiones con los bordes
-      if (newX < 0 || newX > gameArea.clientWidth - ball.clientWidth) {
-        ballSpeed.x *= -1;
-      }
-      if (newY < 0 || newY > gameArea.clientHeight - ball.clientHeight) {
-        ballSpeed.y *= -1;
-      }
+      if (newX < 0 || newX > gameArea.clientWidth - ball.clientWidth) ballSpeed.x *= -1;
+      if (newY < 0 || newY > gameArea.clientHeight - ball.clientHeight) ballSpeed.y *= -1;
 
-      // Aplicar fricción
       ballSpeed.x *= friction;
       ballSpeed.y *= friction;
-
-      // Limitar la velocidad de la pelota
-      const maxSpeed = 10;
-      if (ballSpeed.x > maxSpeed) ballSpeed.x = maxSpeed;
-      if (ballSpeed.x < -maxSpeed) ballSpeed.x = -maxSpeed;
-      if (ballSpeed.y > maxSpeed) ballSpeed.y = maxSpeed;
-      if (ballSpeed.y < -maxSpeed) ballSpeed.y = -maxSpeed;
 
       ball.style.left = Math.max(0, Math.min(gameArea.clientWidth - ball.clientWidth, newX)) + "px";
       ball.style.top = Math.max(0, Math.min(gameArea.clientHeight - ball.clientHeight, newY)) + "px";
     }
 
-    // Función para detectar colisiones entre jugadores y la pelota
     function detectCollisions() {
       for (let key in players) {
         const player = players[key];
@@ -158,18 +138,15 @@
         const ballRect = ball.getBoundingClientRect();
         const gameAreaRect = gameArea.getBoundingClientRect();
 
-        // Calcular posiciones relativas
         const playerX = playerRect.left - gameAreaRect.left;
         const playerY = playerRect.top - gameAreaRect.top;
 
-        // Detectar superposición
         if (
           playerX < parseInt(ball.style.left) + ball.clientWidth &&
           playerX + player.clientWidth > parseInt(ball.style.left) &&
           playerY < parseInt(ball.style.top) + ball.clientHeight &&
           playerY + player.clientHeight > parseInt(ball.style.top)
         ) {
-          // Calcular la dirección de empuje
           const centerPlayerX = playerX + player.clientWidth / 2;
           const centerPlayerY = playerY + player.clientHeight / 2;
           const centerBallX = parseInt(ball.style.left) + ball.clientWidth / 2;
@@ -180,87 +157,62 @@
 
           ballSpeed.x += Math.cos(angle) * force;
           ballSpeed.y += Math.sin(angle) * force;
-
-          // Limitar la velocidad de la pelota
-          const maxSpeed = 10;
-          if (ballSpeed.x > maxSpeed) ballSpeed.x = maxSpeed;
-          if (ballSpeed.x < -maxSpeed) ballSpeed.x = -maxSpeed;
-          if (ballSpeed.y > maxSpeed) ballSpeed.y = maxSpeed;
-          if (ballSpeed.y < -maxSpeed) ballSpeed.y = -maxSpeed;
         }
       }
     }
 
-    // Función para detectar goles
     function detectGoals() {
       const ballLeft = parseInt(ball.style.left);
       const ballRight = ballLeft + ball.clientWidth;
       const ballTop = parseInt(ball.style.top);
       const ballBottom = ballTop + ball.clientHeight;
 
-      // Gol en el equipo rojo (izquierda)
-      if (ballLeft <= -10) { // Ajustado para detectar gol fuera del campo
+      if (ballLeft <= 0 && ballTop >= 190 && ballBottom <= 310) {
         redScore++;
         updateScoreboard();
         resetBall();
       }
 
-      // Gol en el equipo azul (derecha)
-      if (ballRight >= gameArea.clientWidth + 10) { // Ajustado para detectar gol fuera del campo
+      if (ballRight >= gameArea.clientWidth && ballTop >= 190 && ballBottom <= 310) {
         blueScore++;
         updateScoreboard();
         resetBall();
       }
     }
 
-    // Actualizar el marcador
     function updateScoreboard() {
       scoreboard.textContent = `Equipo Azul: ${blueScore} | Equipo Rojo: ${redScore}`;
     }
 
-    // Reiniciar la posición de la pelota
     function resetBall() {
       ball.style.left = "385px";
       ball.style.top = "235px";
       ballSpeed = { x: 0, y: 0 };
     }
 
-    // Bucle principal del juego
     function gameLoop() {
-      // Controles para Equipo Azul - Jugador 1 (WASD)
       if (keys["w"]) movePlayer(players.blue1, 0, -playerSpeed);
       if (keys["s"]) movePlayer(players.blue1, 0, playerSpeed);
       if (keys["a"]) movePlayer(players.blue1, -playerSpeed, 0);
       if (keys["d"]) movePlayer(players.blue1, playerSpeed, 0);
 
-      // Controles para Equipo Azul - Jugador 2 (IJKL)
       if (keys["i"]) movePlayer(players.blue2, 0, -playerSpeed);
       if (keys["k"]) movePlayer(players.blue2, 0, playerSpeed);
       if (keys["j"]) movePlayer(players.blue2, -playerSpeed, 0);
       if (keys["l"]) movePlayer(players.blue2, playerSpeed, 0);
 
-      // Controles para Equipo Rojo - Jugador 1 (Flechas)
       if (keys["arrowup"]) movePlayer(players.red1, 0, -playerSpeed);
       if (keys["arrowdown"]) movePlayer(players.red1, 0, playerSpeed);
       if (keys["arrowleft"]) movePlayer(players.red1, -playerSpeed, 0);
       if (keys["arrowright"]) movePlayer(players.red1, playerSpeed, 0);
 
-      // Controles para Equipo Rojo - Jugador 2 (TILDA y otros)
-      // Puedes asignar otras teclas si lo deseas
-
-      // Mover la pelota
       moveBall();
-
-      // Detectar colisiones
       detectCollisions();
-
-      // Detectar goles
       detectGoals();
 
       requestAnimationFrame(gameLoop);
     }
 
-    // Iniciar el juego
     gameLoop();
   </script>
 </body>
