@@ -137,7 +137,7 @@ e<!DOCTYPE html>
           enemy.y < player.y + player.height &&
           enemy.y + enemy.height > player.y
         ) {
-          player.health -= 10;
+          player.health -= 1;
           enemies.splice(index, 1);
           if (player.health <= 0) {
             alert('Game Over! Your score: ' + score);
