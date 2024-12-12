@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+e<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -114,7 +114,7 @@
           bullet.x < 0 || bullet.x > canvas.width ||
           bullet.y < 0 || bullet.y > canvas.height
         ) {
-          bullets.splice(index, 100);
+          bullets.splice(index, 1);
         }
       });
     }
@@ -193,7 +193,7 @@
 
       requestAnimationFrame(gameLoop);
     }
-    setInterval(shoot, 5000) 
+    setInterval(bullet, 1000) 
     setInterval(spawnEnemy, 2000); // Spawn enemies every 2 seconds
     gameLoop();
   </script>
